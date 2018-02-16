@@ -379,7 +379,7 @@ export class Service {
       if (json.children) {
         const directory = new Directory(json.name);
         (await deserialize(json.children, basePath + "/" + json.name)).forEach((file: File) => {
-          directory.addFile(file);
+          directory.addFile(file, true);
         });
         return directory;
       }
@@ -395,7 +395,7 @@ export class Service {
     }
     project.name = json.name;
     (await deserialize(json.children, "templates/" + json.directory)).forEach((file: File) => {
-      project.addFile(file);
+      project.addFile(file, true);
     });
     return json;
   }

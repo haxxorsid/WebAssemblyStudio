@@ -471,6 +471,12 @@ export class Directory extends File {
       directory = directory.parent;
     }
   }
+  setDirty() {
+    this.isDirty =  true;
+  }
+  unsetDirty() {
+    this.isDirty =  false;
+  }
   forEachFile(fn: (file: File) => void, recurse = false) {
     if (recurse) {
       this.children.forEach((file: File) => {
@@ -491,11 +497,14 @@ export class Directory extends File {
       return true;
     }).map(fn);
   }
-  addFile(file: File) {
+  addFile(file: File, loadProject: boolean = false) {
     assert(file.parent === null);
     assert(!this.getImmediateChild(file.name));
     this.children.push(file);
     file.parent = this;
+    if (!loadProject) {
+	  this.setDirty();
+    }
     this.notifyDidChangeChildren();
   }
   removeFile(file: File) {
@@ -504,6 +513,7 @@ export class Directory extends File {
     assert(i >= 0);
     this.children.splice(i, 1);
     file.parent = null;
+	this.setDirty();
     this.notifyDidChangeChildren();
   }
   newDirectory(path: string | string[]): Directory {
@@ -594,7 +604,6 @@ export class Project extends Directory {
   onDidChangeStatus = new EventDispatcher("Status Change");
   onChange = new EventDispatcher("Project Change");
   onDirtyFileUsed = new EventDispatcher("Dirty File Used");
-
   constructor() {
     super("Project");
   }

@@ -106,6 +106,7 @@ export class Monaco extends React.Component<MonacoProps, {}> {
         const view = self.props.view;
         if (view && !view.file.isBufferReadOnly) {
           view.file.save();
+		  view.file.parent.setDirty();
         }
         return null;
       }

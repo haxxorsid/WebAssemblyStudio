@@ -187,6 +187,23 @@ export class App extends React.Component<AppProps, AppState> {
       this.loadProjectFromFiddle();
     }
   }
+  isAppDirty(): boolean {
+    function serialize(file: File): boolean {
+      assert(!file.isTransient);
+      if (file instanceof Directory) {
+        return file.isDirty || file.mapEachFile((file: File) => serialize(file), true).includes(true);
+      } else {
+        return file.isDirty;
+      }
+    }
+    return serialize(this.state.project.getModel());
+  }
+  private unsetAllDirtyDirectories(directory: Directory) {
+    if (directory instanceof Directory) {
+      directory.unsetDirty();
+      directory.mapEachFile((directory: Directory) => this.unsetAllDirtyDirectories(directory), true);
+    }
+  }
   async loadProjectFromFiddle() {
     const newProject = new Project();
     let json = await Service.loadJSON(this.state.fiddle);
@@ -293,6 +310,8 @@ export class App extends React.Component<AppProps, AppState> {
   }
 
   async update() {
+    const projectModel = this.state.project.getModel();
+    this.unsetAllDirtyDirectories(projectModel);
     saveProject(this.state.fiddle);
   }
   async fork() {
@@ -307,6 +326,7 @@ export class App extends React.Component<AppProps, AppState> {
     } else {
       history.pushState({}, fiddle, `?f=${fiddle}`);
     }
+	this.unsetAllDirtyDirectories(projectModel);
     this.setState({ fiddle });
   }
   async gist(fileOrDirectory?: File) {

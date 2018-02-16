@@ -41,7 +41,13 @@ window.addEventListener("resize", layout, false);
 window.addEventListener("resize", () => {
   // Split.onGlobalResize.dispatch();
 }, false);
-
+window.onbeforeunload = (e: any) => {
+  if (app.isAppDirty()) {
+    e = e || window.event;
+    // For Safari
+    return "Sure?";
+  }
+};
 export function forEachUrlParameter(callback: (key: string, value: any) => void) {
   let url = window.location.search.substring(1);
   url = url.replace(/\/$/, ""); // Replace / at the end that gets inserted by browsers.
@@ -67,12 +73,13 @@ export function getUrlParameters(): any {
 const parameters = getUrlParameters();
 const embed = parameters["embed"] === true ? true : !!parseInt(parameters["embed"], 10);
 const fiddle = parameters["fiddle"] || parameters["f"];
+let app: App;
 
 (window["require"])(["vs/editor/editor.main", "require"], (_: any, require: any) => {
   MonacoUtils.initialize(require);
 
   ReactDOM.render(
-    parameters["test"] ? <Test/> : <App embed={embed} fiddle={fiddle}/>,
+    parameters["test"] ? <Test/> : <App embed={embed} fiddle={fiddle} ref={(ref) => app = ref}/>,
     document.getElementById("app")
   );
 });
